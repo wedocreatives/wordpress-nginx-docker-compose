@@ -41,3 +41,6 @@ bin
 
 # Custom
 .DS_Store
+
+# PHPStorm
+.idea

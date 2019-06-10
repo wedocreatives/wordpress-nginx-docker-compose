@@ -2,26 +2,25 @@ version: '3.6'
 services:
   nginx:
     image: nginx:latest
-    container_name: myapp-nginx
+    container_name: ${PROJECT_NAME}-nginx
     ports:
       - '80:80'
-      - '443:443'
     volumes:
       - ./nginx:/etc/nginx/conf.d
-      - ./src:/var/www/html:rw,cached
+      - ~/PhpstormProjects/${PROJECT_NAME}/bedrock:/var/www/html:rw,cached
       - ./certs:/etc/certs
     depends_on:
       - wordpress
     restart: always
 
   mysql:
-    image: mariadb
-    container_name: myapp-mysql
+    image: mysql:5.7
+    container_name: ${PROJECT_NAME}-mysql
     volumes:
-       - './data/db:/var/lib/mysql:delegated'
+       - ~/PhpstormProjects/${PROJECT_NAME}/mysql:/var/lib/mysql
     environment:
-      - MYSQL_ROOT_PASSWORD=password
-      - MYSQL_DATABASE=myapp
+      - MYSQL_ROOT_PASSWORD=${DATABASE_PASSWORD}
+      - MYSQL_DATABASE=${DATABASE_NAME}
     restart: always
     ports:
       - '3306:3306'
@@ -30,23 +29,30 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: myapp-wordpress
+    container_name: ${PROJECT_NAME}-wordpress
     volumes:
-      - ./src:/var/www/html:rw,cached
+      - ~/PhpstormProjects/${PROJECT_NAME}/bedrock:/var/www/html:rw,cached
       - ./config/php.ini:/usr/local/etc/php/conf.d/php.ini
     environment:
-      - WORDPRESS_DB_NAME=myapp
-      - WORDPRESS_TABLE_PREFIX=wp_
+      - WORDPRESS_DB_NAME=${DATABASE_NAME}
+      - WORDPRESS_TABLE_PREFIX=${DATABASE_TABLE_PREFIX}
       - WORDPRESS_DB_HOST=mysql
-      - WORDPRESS_DB_PASSWORD=password
+      - WORDPRESS_DB_PASSWORD=${DATABASE_PASSWORD}
     depends_on:
       - mysql
     restart: always
 
   composer:
     image: composer/composer
-    container_name: myapp-composer
+    container_name: ${PROJECT_NAME}-composer
     working_dir: /var/www/html
     restart: 'no'
     volumes:
-      - ./src:/var/www/html:rw,cached
+      - ~/PhpstormProjects/${PROJECT_NAME}/bedrock:/var/www/html:rw,cached
+
+
+volumes:
+  database:
+    driver: local
+
+
